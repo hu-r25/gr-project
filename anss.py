@@ -88,7 +88,7 @@ class HusseinSolver:
         return None, ""
 
 # --- 3. بناء الواجهة ---
-st.markdown("<h1>Graphical Method \n by hussein</h1>", unsafe_allow_html=True)
+st.markdown("<h1>Graphical Method <br> by hussein</br></h1>", unsafe_allow_html=True)
 
 with st.container():
     st.subheader("🎯 دالة الهدف (Objective Function)")
