@@ -69,8 +69,8 @@ class HusseinSolver:
         return None, ""
 
 # --- 3. واجهة المستخدم المنظمة ---
-st.title("🛡️ Hussein Graphical Solver")
-st.write("واجهة إدخال رقمية صافية (بدون أزرار الزيادة والنقصان)")
+st.title(" Graphical Solver")
+st.write("by Hussein")
 
 col_in, col_res = st.columns([1, 1.2], gap="large")
 
