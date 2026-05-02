@@ -12,13 +12,10 @@ st.set_page_config(
 st.markdown("""
     <style>
     .stApp { background-color: #0d1117; color: #ffffff; }
-    
-    /* إخفاء أزرار التحكم وحذف علامات البوينت */
     button.step-up, button.step-down { display: none !important; }
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-
     .stNumberInput div div input { 
         background-color: #161b22 !important; 
         color: #58a6ff !important; 
@@ -28,13 +25,11 @@ st.markdown("""
         text-align: center;
         border-radius: 8px !important;
     }
-    
     .steps-container { 
         background-color: #010409; padding: 25px; border-radius: 12px; 
         border: 1px solid #30363d; font-family: 'Consolas', monospace; 
         color: #c9d1d9; line-height: 1.7; white-space: pre; overflow-x: auto;
     }
-
     .stButton>button {
         background: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
         color: white; font-weight: bold; height: 50px; border-radius: 10px;
@@ -78,7 +73,6 @@ with st.container():
     st.subheader("🎯 دالة الهدف")
     t_col, c1_col, c2_col = st.columns([1, 1, 1])
     with t_col: obj_type = st.selectbox("Type", ["Max", "Min"], label_visibility="collapsed")
-    # القيمة البدائية صفر
     with c1_col: z1 = st.number_input("Z1", value=0, step=1, format="%d", label_visibility="collapsed")
     with c2_col: z2 = st.number_input("Z2", value=0, step=1, format="%d", label_visibility="collapsed")
 
@@ -92,7 +86,6 @@ with st.container():
     for i in range(num_c):
         st.write(f"القيد L{i+1}:")
         v1_c, v2_c, op_c, rhs_c = st.columns([1, 1, 0.8, 1.2])
-        # القيمة البدائية صفر وخطوة الزيادة 1 (بدون بوينتات)
         with v1_c: v1 = st.number_input(f"v1_{i}", value=0, step=1, format="%d", key=f"v1_{i}", label_visibility="collapsed")
         with v2_c: v2 = st.number_input(f"v2_{i}", value=0, step=1, format="%d", key=f"v2_{i}", label_visibility="collapsed")
         with op_c: op = st.selectbox(f"op_{i}", ["<=", ">=", "="], key=f"op_{i}", label_visibility="collapsed")
@@ -121,7 +114,7 @@ if run_btn:
                 else: report += "   [Status: Discarded - Outside Area]\n"
             if coeffs[1] != 0:
                 p = (0, rhs/coeffs[1])
-                report += f" - Let X1 = 0: {int(coeffs[1])}X2 = {int(rhs)} -> X2 = {p[1]:.1f}\n"
+                report += f" - Let X1 = 0: {int(coeffs[1])}X2 = {int(rhs)} -> X2 = {p[1]:.2f}\n"
                 if HusseinSolver.is_feasible(p, constraints_list):
                     corner_points.append(p)
                     report += "   [Status: Feasible Corner Point]\n"
@@ -146,10 +139,20 @@ if run_btn:
                 unique_corners.append((p, z_val))
                 report += f" Evaluating ({p[0]:.1f}, {p[1]:.1f}) -> Z = {z_val:.1f}\n"
 
-        best = max(unique_corners, key=lambda x: x[1]) if obj_type == "Max" else min(unique_corners, key=lambda x: x[1])
+        # --- تعديل منطق اختيار الحل الأمثل ---
+        if obj_type == "Max":
+            best = max(unique_corners, key=lambda x: x[1])
+        else:
+            # استثناء الصفر في الـ Min لاختيار أقل قيمة حقيقية
+            non_zero_corners = [c for c in unique_corners if c[1] > 1e-7]
+            if non_zero_corners:
+                best = min(non_zero_corners, key=lambda x: x[1])
+            else:
+                best = (0,0), 0.0
+
         report += f"\n>>> FINAL OPTIMAL SOLUTION <<<\nZ = {best[1]:.1f} at X1={best[0][0]:.1f}, X2={best[0][1]:.1f}"
 
-        # العرض
+        # الرسم
         fig, ax = plt.subplots(figsize=(6, 6))
         fig.patch.set_facecolor('#0d1117'); ax.set_facecolor('#161b22')
         limit = max([p[0] for p in corner_points] + [p[1] for p in corner_points]) * 1.3 if corner_points else 10
@@ -171,10 +174,10 @@ if run_btn:
         st.subheader("🏁 النتائج")
         m1, m2, m3 = st.columns(3)
         m1.metric("Optimal Z", f"{best[1]:.1f}")
-        m2.metric("X1 Value", f"{best[0][0]:.1f}")
-        m3.metric("X2 Value", f"{best[0][1]:.1f}")
+        m2.metric("X1 Value", f"{best[0][0]:.2f}")
+        m3.metric("X2 Value", f"{best[0][1]:.2f}")
 
         st.subheader("📄 التحليل الرياضي التفصيلي")
-        st.markdown(f'<div class="steps-container">{report}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="steps-card">{report}</div>', unsafe_allow_html=True)
     except Exception as e:
         st.error(f"Error: {e}")
