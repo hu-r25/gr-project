@@ -85,7 +85,7 @@ class HusseinSolver:
 
 # --- 3. واجهة الإدخال ---
 st.title("Graphical")
-st.write("by hussein")
+st.write("by Hussein.R")
 
 with st.container():
     st.subheader("🎯 دالة الهدف")
