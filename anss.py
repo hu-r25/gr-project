@@ -2,59 +2,54 @@ import streamlit as st
 import re
 import matplotlib.pyplot as plt
 import numpy as np
-import re
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
 
-# --- الإعدادات البصرية ---
-BG_COLOR = "#0f0f0f"
-SIDE_COLOR = "#1a1a1a"
-ACCENT_COLOR = "#00d1ff"
-TEXT_COLOR = "#e0e0e0"
+# --- 1. إعدادات الصفحة المتقدمة ---
+st.set_page_config(
+    page_title="Graphical Method Pro - Hussein",
+    page_icon="📊",
+    layout="wide"
+)
 
-class HusseinGraphicalPro:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Graphical Method - mhm")
-        self.root.geometry("1400x900")
-        self.root.configure(bg=BG_COLOR)
-        self.setup_ui()
+# --- 2. تخصيص المظهر (CSS) ---
+st.markdown("""
+    <style>
+    .stApp { background-color: #0f0f0f; color: #e0e0e0; }
+    .stButton>button { 
+        width: 100%; 
+        background: linear-gradient(45deg, #00d1ff, #008fb3); 
+        color: black; 
+        font-weight: bold; 
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+    }
+    .stTextArea>div>div>textarea { 
+        background-color: #1a1a1a; 
+        color: #00ff00; 
+        font-family: 'Consolas', monospace; 
+        border: 1px solid #333;
+    }
+    .report-card { 
+        background-color: #1e1e1e; 
+        padding: 20px; 
+        border-radius: 12px; 
+        border-left: 6px solid #00d1ff; 
+        margin-top: 20px;
+    }
+    .metric-box {
+        background-color: #252526;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        border: 1px solid #333;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    def setup_ui(self):
-        header = tk.Frame(self.root, bg=SIDE_COLOR, height=60)
-        header.pack(fill=tk.X)
-        tk.Label(header, text="GRAPHICAL METHOD REASONING SYSTEM", font=("Segoe UI", 16, "bold"), 
-                 fg=ACCENT_COLOR, bg=SIDE_COLOR).pack(pady=15)
-
-        main_frame = tk.Frame(self.root, bg=BG_COLOR)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-
-        # مدخلات المسألة
-        input_frame = tk.LabelFrame(main_frame, text=" 1. LP Problem Input ", 
-                                    font=("Arial", 11, "bold"), fg=ACCENT_COLOR, bg=BG_COLOR)
-        input_frame.pack(fill=tk.X, pady=10)
-
-        self.txt_input = scrolledtext.ScrolledText(input_frame, height=5, font=("Consolas", 13), 
-                                                   bg="#222", fg="#00ff00")
-        self.txt_input.pack(fill=tk.X, padx=10, pady=10)
-        self.txt_input.insert(tk.END, "Max Z = 3X1 + 5X2\n2X1 + 1X2 <= 8\n1X1 + 2X2 <= 10\n1X1 + 0X2 <= 3")
-
-        tk.Button(input_frame, text="START MATHEMATICAL ANALYSIS", font=("Arial", 12, "bold"),
-                  bg=ACCENT_COLOR, fg="black", command=self.process_lp).pack(pady=10)
-
-        # النتائج والرسم
-        display_frame = tk.Frame(main_frame, bg=BG_COLOR)
-        display_frame.pack(fill=tk.BOTH, expand=True)
-
-        self.plot_container = tk.Frame(display_frame, bg="#252526", bd=1, relief=tk.SOLID)
-        self.plot_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        
-        self.step_box = scrolledtext.ScrolledText(display_frame, width=65, font=("Courier New", 11), 
-                                                  bg=SIDE_COLOR, fg=TEXT_COLOR)
-        self.step_box.pack(side=tk.RIGHT, fill=tk.BOTH)
-
-    def is_feasible(self, p, constraints):
+# --- 3. المحرك الرياضي (Mathematical Engine) ---
+class HusseinSolver:
+    @staticmethod
+    def is_feasible(p, constraints):
         x1, x2 = p
         if x1 < -1e-7 or x2 < -1e-7: return False
         for row, op, rhs, _ in constraints:
@@ -64,136 +59,138 @@ class HusseinGraphicalPro:
             if op == "=" and abs(val - rhs) > 1e-7: return False
         return True
 
-    def solve_intersection(self, c1, c2, constraints):
+    @staticmethod
+    def solve_intersection(c1, c2, constraints):
         a1, b1 = c1[0]; r1 = c1[2]
         a2, b2 = c2[0]; r2 = c2[2]
         det = a1 * b2 - a2 * b1
-        if abs(det) < 1e-9: return None, ""
+        if abs(det) < 1e-9: return None
         x = (r1 * b2 - r2 * b1) / det
         y = (a1 * r2 - a2 * r1) / det
-        
-        if self.is_feasible((x, y), constraints):
-            steps = f"INTERSECTION L{c1[3]} & L{c2[3]} (Substitution):\n"
-            steps += f"  (1) {a1}X1 + {b1}X2 = {r1}\n"
-            steps += f"  (2) {a2}X1 + {b2}X2 = {r2}\n"
-            steps += f"  => Result: Feasible Corner at ({x:.2f}, {y:.2f})\n\n"
-            return (x, y), steps
-        return None, ""
+        if HusseinSolver.is_feasible((x, y), constraints):
+            return (x, y)
+        return None
 
-    def parse_lp(self):
-        raw = self.txt_input.get("1.0", tk.END).strip().lower().replace(" ", "")
+# --- 4. واجهة المستخدم (UI) ---
+st.title("🚀 Graphical Method Reasoning System")
+st.markdown("Developed by **Hussein** | Advanced LP Solver")
+st.write("---")
+
+col_in, col_graph = st.columns([1, 1.2], gap="large")
+
+with col_in:
+    st.subheader("📥 Input LP Problem")
+    st.info("Example Format: Max Z = 3X1 + 5X2")
+    input_text = st.text_area("Constraints & Objective:", 
+                             value="Max Z = 3X1 + 5X2\n2X1 + 1X2 <= 8\n1X1 + 2X2 <= 10\n1X1 + 0X2 <= 3", 
+                             height=250)
+    analyze_btn = st.button("RUN MATHEMATICAL ANALYSIS")
+
+if analyze_btn:
+    try:
+        # --- Parsing Logic ---
+        raw = input_text.strip().lower().replace(" ", "")
         lines = [l for l in raw.split('\n') if l]
         mode = "max" if "max" in lines[0] else "min"
         obj_m = re.findall(r'([-+]?\d*\.?\d*)x(\d+)', lines[0])
         obj_c = [0.0, 0.0]
-        for v, i in obj_m: obj_c[int(i)-1] = float(v) if v not in ["", "+", "-"] else float(v + "1")
+        for v, i in obj_m: 
+            idx = int(i)-1
+            if idx < 2:
+                obj_c[idx] = float(v) if v not in ["", "+", "-"] else float(v + "1")
+        
         constraints = []
         for idx, l in enumerate(lines[1:]):
             op = "<=" if "<=" in l else (">=" if ">=" in l else "=")
             lhs, rhs = l.split(op)
             m = re.findall(r'([-+]?\d*\.?\d*)x(\d+)', lhs)
             row = [0.0, 0.0]
-            for v, i in m: row[int(i)-1] = float(v) if v not in ["", "+", "-"] else float(v + "1")
+            for v, i in m:
+                c_idx = int(i)-1
+                if c_idx < 2:
+                    row[c_idx] = float(v) if v not in ["", "+", "-"] else float(v + "1")
             constraints.append((row, op, float(rhs), idx + 1))
-        return mode, obj_c, constraints
 
-    def process_lp(self):
-        try:
-            mode, obj_c, constraints = self.parse_lp()
-            self.step_box.delete('1.0', tk.END)
-            report = "--- STEP-BY-STEP MATHEMATICAL ANALYSIS ---\n\n"
-            
-            # --- الخطوة الأولى: نقاط التقاطع مع المحاور بالتفصيل ---
-            report += "STEP 1: AXIS INTERCEPTS (SUBSTITUTION MATH)\n"
-            corner_points = []
-            if self.is_feasible((0,0), constraints):
-                corner_points.append((0,0))
-                report += f"  - Origin Point Check: (0,0) is Feasible\n"
+        # --- Solve logic ---
+        points = []
+        if HusseinSolver.is_feasible((0,0), constraints): points.append((0,0))
+        
+        for r, o, rhs, idx in constraints:
+            if r[0] != 0:
+                p = (rhs/r[0], 0)
+                if HusseinSolver.is_feasible(p, constraints): points.append(p)
+            if r[1] != 0:
+                p = (0, rhs/r[1])
+                if HusseinSolver.is_feasible(p, constraints): points.append(p)
+        
+        for i in range(len(constraints)):
+            for j in range(i+1, len(constraints)):
+                pt = HusseinSolver.solve_intersection(constraints[i], constraints[j], constraints)
+                if pt: points.append(pt)
 
-            for row, op, rhs, idx in constraints:
-                report += f"\nConstraint L{idx}: {row[0]}X1 + {row[1]}X2 = {rhs}\n"
+        # Result filtering
+        unique_results = []
+        seen = set()
+        for p in points:
+            p_rnd = (round(p[0], 4), round(p[1], 4))
+            if p_rnd not in seen:
+                seen.add(p_rnd)
+                unique_results.append((p, obj_c[0]*p[0] + obj_c[1]*p[1]))
+
+        if not unique_results:
+            st.error("No Feasible Region Found!")
+        else:
+            best = max(unique_results, key=lambda x: x[1]) if mode == "max" else min(unique_results, key=lambda x: x[1])
+
+            # --- Visualization ---
+            with col_graph:
+                st.subheader("📊 Feasible Region Graph")
+                fig, ax = plt.subplots(figsize=(8, 8))
+                fig.patch.set_facecolor('#0f0f0f')
+                ax.set_facecolor('#1a1a1a')
                 
-                # التقاطع مع محور X1
-                if row[0] != 0:
-                    val = rhs/row[0]
-                    report += f"  - Let X2 = 0: {row[0]}X1 + {row[1]}(0) = {rhs}\n"
-                    report += f"    => {row[0]}X1 = {rhs} -> X1 = {val:.2f}. Point: ({val:.2f}, 0)\n"
-                    if self.is_feasible((val, 0), constraints):
-                        corner_points.append((val, 0))
-                        report += "    [Status: Feasible Corner Point]\n"
-                    else:
-                        report += "    [Status: Discarded - Outside Area]\n"
+                # Dynamic scaling
+                all_coords = [p[0] for p in points] + [p[1] for p in points]
+                lim = max(all_coords) * 1.3 if all_coords else 10
+                x_vals = np.linspace(0, lim, 400)
                 
-                # التقاطع مع محور X2
-                if row[1] != 0:
-                    val = rhs/row[1]
-                    report += f"  - Let X1 = 0: {row[0]}(0) + {row[1]}X2 = {rhs}\n"
-                    report += f"    => {row[1]}X2 = {rhs} -> X2 = {val:.2f}. Point: (0, {val:.2f})\n"
-                    if self.is_feasible((0, val), constraints):
-                        corner_points.append((0, val))
-                        report += "    [Status: Feasible Corner Point]\n"
+                # Plot lines
+                colors = ['#ff8c00', '#00ff7f', '#ff00ff', '#1e90ff']
+                for i, (r, o, rhs, idx) in enumerate(constraints):
+                    color = colors[i % len(colors)]
+                    if r[1] != 0:
+                        ax.plot(x_vals, (rhs - r[0]*x_vals)/r[1], label=f"L{idx}", color=color, lw=2)
                     else:
-                        report += "    [Status: Discarded - Outside Area]\n"
-            
-            # --- الخطوة الثانية: تقاطع المستقيمات ---
-            report += "\n" + "="*45 + "\nSTEP 2: LINE INTERSECTIONS (ELIMINATION)\n"
-            for i in range(len(constraints)):
-                for j in range(i+1, len(constraints)):
-                    pt, math_steps = self.solve_intersection(constraints[i], constraints[j], constraints)
-                    if pt:
-                        corner_points.append(pt)
-                        report += math_steps
-            
-            # --- الخطوة الثالثة: اختبار النقاط الركنية ---
-            report += "="*45 + "\nSTEP 3: CORNER POINT Z-EVALUATION\n"
-            unique_corners = []
-            seen = set()
-            for p in corner_points:
-                rnd = (round(p[0], 4), round(p[1], 4))
-                if rnd not in seen:
-                    seen.add(rnd)
-                    z = obj_c[0]*p[0] + obj_c[1]*p[1]
-                    unique_corners.append((p, z))
-                    report += f"  Evaluating ({p[0]:.2f}, {p[1]:.2f}) -> Z = {z:.2f}\n"
+                        ax.axvline(x=rhs/r[0], label=f"L{idx}", color=color, lw=2)
 
-            best = max(unique_corners, key=lambda x: x[1]) if mode == "max" else min(unique_corners, key=lambda x: x[1])
-            report += f"\n>>> OPTIMAL SOLUTION <<<\nZ = {best[1]:.2f} at X1={best[0][0]:.2f}, X2={best[0][1]:.2f}"
-            
-            self.step_box.insert(tk.END, report)
-            self.render_graph(constraints, [p[0] for p in unique_corners], best)
+                # Fill region
+                if len(unique_results) >= 3:
+                    poly_pts = np.array([r[0] for r in unique_results])
+                    center = np.mean(poly_pts, axis=0)
+                    angles = np.arctan2(poly_pts[:,1]-center[1], poly_pts[:,0]-center[0])
+                    poly_pts = poly_pts[np.argsort(angles)]
+                    ax.fill(poly_pts[:,0], poly_pts[:,1], color="#00d1ff", alpha=0.3, label="Feasible Area")
 
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+                # Optimal point marker
+                ax.scatter(best[0][0], best[0][1], color='red', s=250, edgecolors='white', zorder=5, label="Optimal Solution")
+                
+                ax.set_xlim(0, lim); ax.set_ylim(0, lim)
+                ax.tick_params(colors='white', labelsize=10)
+                ax.grid(color='#333', linestyle='--', alpha=0.5)
+                ax.legend(facecolor='#1e1e1e', labelcolor='white')
+                st.pyplot(fig)
 
-    def render_graph(self, constraints, f_pts, best_pt):
-        for w in self.plot_container.winfo_children(): w.destroy()
-        fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
-        fig.patch.set_facecolor('#252526'); ax.set_facecolor('#1e1e1e')
-        
-        max_v = max([c[2] for c in constraints]) + 2
-        x = np.linspace(0, max_v, 400)
-        
-        colors = ['#ff8c00', '#00ff7f', '#ff00ff', '#1e90ff']
-        for i, (coeffs, op, rhs, idx) in enumerate(constraints):
-            if coeffs[1] != 0:
-                y = (rhs - coeffs[0]*x) / coeffs[1]
-                ax.plot(x, y, label=f"L{idx}", color=colors[i%4], lw=2)
-            else: ax.axvline(x=rhs/coeffs[0], label=f"L{idx}", color=colors[i%4], lw=2)
+            # --- Final Stats ---
+            st.markdown("---")
+            st.subheader("🏁 Optimization Results")
+            res_c1, res_c2, res_c3 = st.columns(3)
+            with res_c1:
+                st.markdown(f'<div class="metric-box"><p style="color:#00d1ff;margin:0;">Optimal Value (Z)</p><h2>{best[1]:.2f}</h2></div>', unsafe_allow_html=True)
+            with res_c2:
+                st.markdown(f'<div class="metric-box"><p style="color:#00d1ff;margin:0;">X1 Value</p><h2>{best[0][0]:.2f}</h2></div>', unsafe_allow_html=True)
+            with res_c3:
+                st.markdown(f'<div class="metric-box"><p style="color:#00d1ff;margin:0;">X2 Value</p><h2>{best[0][1]:.2f}</h2></div>', unsafe_allow_html=True)
 
-        if len(f_pts) >= 3:
-            pts = np.array(f_pts)
-            center = np.mean(pts, axis=0)
-            angles = np.arctan2(pts[:,1] - center[1], pts[:,0] - center[0])
-            pts = pts[np.argsort(angles)]
-            ax.fill(pts[:,0], pts[:,1], color=ACCENT_COLOR, alpha=0.3, label="Feasible Region")
-
-        ax.plot(best_pt[0][0], best_pt[0][1], 'ro', markersize=12)
-        ax.set_xlim(0, max_v); ax.set_ylim(0, max_v)
-        ax.tick_params(colors='white'); ax.grid(color='#444', linestyle='--')
-        ax.legend(facecolor='#333', labelcolor='white')
-        
-        canvas = FigureCanvasTkAgg(fig, master=self.plot_container)
-        canvas.draw(); canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
-if __name__ == "__main__":
-    root = tk.Tk(); HusseinGraphicalPro(root); root.mainloop()
+    except Exception as e:
+        st.error(f"⚠️ Input Error: Please ensure you follow the 'Max Z = AX1 + BX2' format.")
+        st.info("Error details: " + str(e))
