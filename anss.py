@@ -4,7 +4,7 @@ import numpy as np
 
 # --- 1. إعدادات الصفحة والتصميم ---
 st.set_page_config(
-    page_title="Hussein Solver App",
+    page_title=" Solver Graphical Method",
     page_icon="📱",
     layout="wide"
 )
@@ -72,7 +72,7 @@ class HusseinSolver:
         return None, ""
 
 # --- 3. واجهة الإدخال ---
-st.title("🛡️ Hussein Solver Pro")
+st.title("Graphical Method \n by hussein")
 
 with st.container():
     st.subheader("🎯 دالة الهدف")
