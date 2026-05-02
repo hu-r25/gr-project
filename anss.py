@@ -89,7 +89,7 @@ class HusseinSolver:
 
 # --- 3. بناء الواجهة ---
 st.markdown("<h1>Graphical Method ></h1>", unsafe_allow_html=True)
-st.markdown("<h2>by Hussein.R ></h2>", unsafe_allow_html=True)
+st.markdown("<h2>by Hussein.R </h2>")
 with st.container():
     st.subheader("🎯 دالة الهدف (Objective Function)")
     c_type, c_z1, c_z2 = st.columns([1, 1, 1])
