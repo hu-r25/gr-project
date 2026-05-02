@@ -115,7 +115,7 @@ with st.container():
         constraints_list.append(([val1, val2], op, rhs, i + 1))
 
 st.write("")
-if st.button("🚀 بدأ التحليل الرياضي الآن"):
+if st.button("🚀 بدأ الحل"):
     try:
         # --- التقرير والنتائج ---
         report = "--- STEP-BY-STEP MATHEMATICAL ANALYSIS ---\n\n"
